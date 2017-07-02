@@ -81,7 +81,7 @@ public class PatternLockView extends ViewGroup {
             NodeView node = new NodeView(getContext(), n + 1);
             addView(node);
         }
-        lineList = new ArrayList<Pair<NodeView,NodeView>>();
+        lineList = new ArrayList<Pair<NodeView, NodeView>>();
         pwdSb = new StringBuilder();
 
         setWillNotDraw(false);
@@ -89,7 +89,7 @@ public class PatternLockView extends ViewGroup {
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        setMeasuredDimension(widthMeasureSpec, widthMeasureSpec); 
+        setMeasuredDimension(widthMeasureSpec, widthMeasureSpec);
     }
 
     @Override
@@ -123,58 +123,57 @@ public class PatternLockView extends ViewGroup {
             case MotionEvent.ACTION_DOWN:
             case MotionEvent.ACTION_MOVE:
                 NodeView nodeAt = getNodeAt(event.getX(), event.getY());
-                if (nodeAt == null && currentNode == null) { 
+                if (nodeAt == null && currentNode == null) {
                     return true;
-                } else { 
-                    clearScreenAndDrawList(); 
+                } else {
+                    clearScreenAndDrawList();
                     if (currentNode == null) {
                         currentNode = nodeAt;
                         currentNode.setHighLighted(true);
                         pwdSb.append(currentNode.getNum());
-                    }
-                    else if (nodeAt == null || nodeAt.isHighLighted()) {
-                         
+                    } else if (nodeAt == null || nodeAt.isHighLighted()) {
+
                         canvas.drawLine(currentNode.getCenterX(), currentNode.getCenterY(), event.getX(), event.getY(), paint);
-                    } else { 
+                    } else {
                         canvas.drawLine(currentNode.getCenterX(), currentNode.getCenterY(), nodeAt.getCenterX(), nodeAt.getCenterY(), paint);
                         nodeAt.setHighLighted(true);
                         Pair<NodeView, NodeView> pair = new Pair<NodeView, NodeView>(currentNode, nodeAt);
                         lineList.add(pair);
-                        
+
                         currentNode = nodeAt;
                         pwdSb.append(currentNode.getNum());
                     }
-                    
+
                     invalidate();
                 }
                 return true;
             case MotionEvent.ACTION_UP:
-               
+
                 if (pwdSb.length() <= 0) {
                     return super.onTouchEvent(event);
                 }
-              
+
                 if (callBack != null) {
                     callBack.onFinish(pwdSb.toString());
-                    pwdSb.setLength(0); 
+                    pwdSb.setLength(0);
                 }
-               
+
                 currentNode = null;
                 lineList.clear();
                 clearScreenAndDrawList();
-                
+
                 for (int n = 0; n < getChildCount(); n++) {
                     NodeView node = (NodeView) getChildAt(n);
                     node.setHighLighted(false);
                 }
-                
+
                 invalidate();
                 return true;
         }
         return super.onTouchEvent(event);
     }
 
-   
+
     private void clearScreenAndDrawList() {
         canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
         for (Pair<NodeView, NodeView> pair : lineList) {
@@ -182,7 +181,7 @@ public class PatternLockView extends ViewGroup {
         }
     }
 
-   
+
     private NodeView getNodeAt(float x, float y) {
         for (int n = 0; n < getChildCount(); n++) {
             NodeView node = (NodeView) getChildAt(n);
@@ -201,7 +200,7 @@ public class PatternLockView extends ViewGroup {
         this.callBack = callBack;
     }
 
-   
+
     public class NodeView extends View {
 
         private int num;
@@ -260,7 +259,7 @@ public class PatternLockView extends ViewGroup {
         }
 
     }
-    
+
     public interface CallBack {
 
         public void onFinish(String password);
