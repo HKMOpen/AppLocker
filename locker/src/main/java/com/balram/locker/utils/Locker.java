@@ -1,7 +1,9 @@
 package com.balram.locker.utils;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.os.Build;
+import android.os.Bundle;
 import android.support.annotation.DrawableRes;
 import android.support.v7.app.AppCompatActivity;
 
@@ -87,21 +89,41 @@ public abstract class Locker {
             return this;
         }
 
-        public Builder withPressFunc(String label, boolean closex, Class<? extends AppCompatActivity> class_name) {
+        public Builder setUnlockPass(String password) {
+            AppLocker.getInstance().getAppLock().setPasscode(password);
+            intent.putExtra(Locker.TYPE, UNLOCK_PASSWORD);
+            return this;
+        }
+
+        public Builder setUnlockPass(String password, String message) {
+            AppLocker.getInstance().getAppLock().setPasscode(password);
+            intent.putExtra(Locker.TYPE, UNLOCK_PASSWORD);
+            intent.putExtra(Locker.MESSAGE, message);
+            return this;
+        }
+
+        public Builder withPressFunc(String label, boolean closex, Class<? extends Activity> class_name) {
             intent.putExtra(Locker.INTENT_FUNCTION_CLASS, class_name.getClass().getCanonicalName());
             intent.putExtra(Locker.INTENT_BOOL_CLOSE_CURRENT, closex);
-            // intent.putExtra(Locker.INTENT_BUNDLE_DATA, intent_data);
             intent.putExtra(Locker.INTENT_LABEL, label);
             return this;
         }
 
-        public Builder withPressFunc(String label, Class<? extends AppCompatActivity> class_name) {
-            intent.putExtra(Locker.INTENT_FUNCTION_CLASS, class_name.getCanonicalName());
+        public Builder withPressFunc(String label, Class<? extends Activity> class_name) {
+            intent.putExtra(Locker.INTENT_FUNCTION_CLASS, class_name.getName());
             intent.putExtra(Locker.INTENT_BOOL_CLOSE_CURRENT, true);
-            // intent.putExtra(Locker.INTENT_BUNDLE_DATA, intent_data);
             intent.putExtra(Locker.INTENT_LABEL, label);
             return this;
         }
+
+        public Builder withPressFunc(String label, Class<? extends Activity> class_name, Bundle args) {
+            intent.putExtra(Locker.INTENT_FUNCTION_CLASS, class_name.getName());
+            intent.putExtra(Locker.INTENT_BOOL_CLOSE_CURRENT, true);
+            intent.putExtra(Locker.INTENT_BUNDLE_DATA, args);
+            intent.putExtra(Locker.INTENT_LABEL, label);
+            return this;
+        }
+
 
         public Builder withIcon(@DrawableRes int resIcon) {
             intent.putExtra(ICON, resIcon);
