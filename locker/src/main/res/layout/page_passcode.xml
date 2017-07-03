@@ -57,6 +57,7 @@
             <EditText
                 android:id="@+id/passcode_4"
                 style="@style/PasscodeInputIStyle" />
+
         </LinearLayout>
 
         <LinearLayout

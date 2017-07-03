@@ -3,10 +3,15 @@ package com.balram.locker.view;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.DrawableRes;
+import android.support.annotation.Nullable;
+import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AppCompatActivity;
 import android.text.InputFilter;
 import android.text.InputType;
 import android.text.Spanned;
 import android.text.method.PasswordTransformationMethod;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
@@ -16,12 +21,18 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.balram.locker.R;
 import com.balram.locker.main.AppLockerActivity;
 import com.balram.locker.utils.Encryptor;
 import com.balram.locker.utils.Locker;
+
+import io.github.rockerhieu.emojiconize.Emojiconize;
+
+import static com.balram.locker.utils.Locker.INTENT_BOOL_CLOSE_CURRENT;
+import static com.balram.locker.utils.Locker.INTENT_BUNDLE_DATA;
 
 public class LockActivity extends AppLockerActivity {
     public static final String TAG = "LockActivity";
@@ -36,6 +47,11 @@ public class LockActivity extends AppLockerActivity {
     protected InputFilter[] filters = null;
     protected TextView tvMessage = null;
     protected Activity mActivity;
+    private String[] code = new String[4];
+    boolean erase_bool = true;
+    @DrawableRes
+    private int icon_special = -1;
+    private String special_char;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,22 +59,22 @@ public class LockActivity extends AppLockerActivity {
 
         setContentView(R.layout.page_passcode);
         mActivity = this;
-
         tvMessage = (TextView) findViewById(R.id.tv_message);
-
-        Bundle extras = getIntent().getExtras();
+        final Bundle extras = getIntent().getExtras();
         if (extras != null) {
             String message = extras.getString(Locker.MESSAGE);
             if (message != null) {
                 tvMessage.setText(message);
             }
-
             type = extras.getInt(Locker.TYPE, -1);
+            erase_bool = extras.getString(Locker.INTENT_FUNCTION_CLASS, "").isEmpty();
+            icon_special = extras.getInt(Locker.ICON, -1);
+            special_char = extras.getString(Locker.PASSCODE_SYMBOL, "");
         }
 
-        filters = new InputFilter[2];
+        filters = new InputFilter[1];
         filters[0] = new InputFilter.LengthFilter(1);
-        filters[1] = numberFilter;
+        // filters[1] = numberFilter;
 
         codeField1 = (EditText) findViewById(R.id.passcode_1);
         setupEditText(codeField1);
@@ -83,7 +99,6 @@ public class LockActivity extends AppLockerActivity {
         ((Button) findViewById(R.id.button7)).setOnClickListener(btnListener);
         ((Button) findViewById(R.id.button8)).setOnClickListener(btnListener);
         ((Button) findViewById(R.id.button9)).setOnClickListener(btnListener);
-
         ((Button) findViewById(R.id.button_clear))
                 .setOnClickListener(new OnClickListener() {
                     @Override
@@ -92,13 +107,35 @@ public class LockActivity extends AppLockerActivity {
                     }
                 });
 
-        ((Button) findViewById(R.id.button_erase))
-                .setOnClickListener(new OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        onDeleteKey();
+        if (icon_special != -1) {
+            ((ImageView) findViewById(R.id.top_icon)).setImageDrawable(ContextCompat.getDrawable(this, icon_special));
+        }
+
+        Button button_erase_tp = (Button) findViewById(R.id.button_erase);
+        if (erase_bool) {
+            button_erase_tp
+                    .setOnClickListener(new OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            onDeleteKey();
+                        }
+                    });
+        } else {
+            button_erase_tp.setText(extras.getString(Locker.INTENT_LABEL, "x"));
+            button_erase_tp.setOnClickListener(new OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    try {
+                        Class<?> object = Class.forName(extras.getString(Locker.INTENT_FUNCTION_CLASS));
+                        boolean close_x = extras.getBoolean(INTENT_BOOL_CLOSE_CURRENT, true);
+                        openIntent(object, close_x, extras.getBundle(INTENT_BUNDLE_DATA));
+                    } catch (ClassNotFoundException e) {
+                        Log.i(TAG, "please locate correct appcompat activity for intent openings");
                     }
-                });
+                }
+            });
+        }
+
 
         overridePendingTransition(R.anim.slide_up, R.anim.zero);
 
@@ -124,10 +161,12 @@ public class LockActivity extends AppLockerActivity {
     }
 
     protected void onPasscodeInputed() {
-        String passLock = codeField1.getText().toString()
-                + codeField2.getText().toString()
-                + codeField3.getText().toString() + codeField4.getText();
-
+        StringBuffer result = new StringBuffer();
+        for (int i = 0; i < code.length; i++) {
+            if (code[i] != null)
+                result.append(code[i]);
+        }
+        String passLock = result.toString();
         codeField1.setText("");
         codeField2.setText("");
         codeField3.setText("");
@@ -205,8 +244,8 @@ public class LockActivity extends AppLockerActivity {
         editText.setInputType(InputType.TYPE_NULL);
         editText.setFilters(filters);
         editText.setOnTouchListener(touchListener);
-        editText.setTransformationMethod(PasswordTransformationMethod
-                .getInstance());
+        Emojiconize.view(editText).go();
+        // editText.setTransformationMethod(PasswordTransformationMethod.getInstance());
     }
 
     public boolean onKeyDown(int keyCode, KeyEvent event) {
@@ -215,6 +254,17 @@ public class LockActivity extends AppLockerActivity {
             return true;
         }
         return super.onKeyDown(keyCode, event);
+    }
+
+    private void openIntent(Class intent_class, boolean close_x, @Nullable Bundle dat) {
+        Intent intent = new Intent(this, intent_class);
+        if (dat != null) {
+            intent.putExtras(dat);
+        }
+        this.startActivity(intent);
+        if (close_x) {
+            finish();
+        }
     }
 
     private void onDeleteKey() {
@@ -261,31 +311,40 @@ public class LockActivity extends AppLockerActivity {
             }
 
             // set the value and move the focus
-            String currentValueString = String.valueOf(currentValue);
+            String internal_st = String.valueOf(currentValue);
+            String currentValueString = special_char.isEmpty() ? "*" : special_char;
             if (codeField1.isFocused()) {
                 codeField1.setText(currentValueString);
+                code[0] = internal_st;
                 codeField2.requestFocus();
                 codeField2.setText("");
             } else if (codeField2.isFocused()) {
                 codeField2.setText(currentValueString);
+                code[1] = internal_st;
                 codeField3.requestFocus();
                 codeField3.setText("");
             } else if (codeField3.isFocused()) {
                 codeField3.setText(currentValueString);
+                code[2] = internal_st;
                 codeField4.requestFocus();
                 codeField4.setText("");
             } else if (codeField4.isFocused()) {
                 codeField4.setText(currentValueString);
+                code[3] = internal_st;
             }
 
-            if (codeField4.getText().toString().length() > 0
-                    && codeField3.getText().toString().length() > 0
-                    && codeField2.getText().toString().length() > 0
-                    && codeField1.getText().toString().length() > 0) {
+            if (!passFilled()) {
                 onPasscodeInputed();
             }
         }
     };
+
+    private boolean passFilled() {
+        return codeField1.getText().toString().isEmpty() ||
+                codeField3.getText().toString().isEmpty() ||
+                codeField2.getText().toString().isEmpty() ||
+                codeField4.getText().toString().isEmpty();
+    }
 
     protected void onPasscodeError() {
         Encryptor.snackPeak(mActivity, getString(R.string.passcode_wrong));
@@ -307,8 +366,7 @@ public class LockActivity extends AppLockerActivity {
 
     private InputFilter numberFilter = new InputFilter() {
         @Override
-        public CharSequence filter(CharSequence source, int start, int end,
-                                   Spanned dest, int dstart, int dend) {
+        public CharSequence filter(CharSequence source, int start, int end, Spanned dest, int dstart, int dend) {
 
             if (source.length() > 1) {
                 return "";
@@ -345,7 +403,6 @@ public class LockActivity extends AppLockerActivity {
         codeField2.setText("");
         codeField3.setText("");
         codeField4.setText("");
-
         codeField1.postDelayed(new Runnable() {
 
             @Override
