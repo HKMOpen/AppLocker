@@ -1,5 +1,5 @@
 # App lock library for Android
-[![](https://jitpack.io/v/balrampandey19/AppLocker.svg)](https://jitpack.io/#balrampandey19/AppLocker)
+[ ![Download](https://api.bintray.com/packages/jjhesk/maven/applocker/images/download.svg) ](https://bintray.com/jjhesk/maven/applocker/_latestVersion)
 [![License](http://img.shields.io/:license-apache-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0.html)
 
 
@@ -30,13 +30,13 @@ Once enabled a four-digit passcode needs to be entered any time your mobile app 
 
 ```
  public class MainActivity extends LockActivity {
- 
+
   @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         }
- 
+
  }
 ```
 
@@ -62,7 +62,7 @@ and:
 
 ```gradle
 dependencies {
-   compile 'com.github.balrampandey19:AppLocker:1.0.1'
+   compile 'com.hkm.ui:applocker:1.2.0'
 }
 ```
 
@@ -85,7 +85,3 @@ dependencies {
    limitations under the License.
 
 ```
-
-
-
-
